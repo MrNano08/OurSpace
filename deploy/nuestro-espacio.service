@@ -1,0 +1,29 @@
+[Unit]
+Description=Nuestro espacio API
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Crear esta cuenta de servicio y adaptar rutas según la instalación.
+User=nuestro-espacio
+Group=nuestro-espacio
+WorkingDirectory=/opt/nuestro-espacio/backend
+Environment=NODE_ENV=production
+Environment=PHOTO_STORAGE_DIR=/var/lib/nuestro-espacio/gallery
+Environment=VIDEO_STORAGE_DIR=/var/lib/nuestro-espacio/videos
+EnvironmentFile=/opt/nuestro-espacio/backend/.env
+ExecStart=/usr/bin/node /opt/nuestro-espacio/backend/dist/src/main.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+StateDirectory=nuestro-espacio
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/nuestro-espacio
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
