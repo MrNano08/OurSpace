@@ -1,7 +1,7 @@
 import { Injectable,Inject,BadRequestException,ForbiddenException,NotFoundException,ConflictException,OnModuleDestroy,OnModuleInit,Logger } from '@nestjs/common';
 import { DataSource,EntityManager,IsNull,LessThan } from 'typeorm';
 import { randomUUID } from 'node:crypto';
-import { open,stat,rename,chmod,readdir } from 'node:fs/promises';
+import { open,stat,rename,chmod,readdir,rm } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { Readable } from 'node:stream';
 import { CONFIG,Config } from '../common/config';
@@ -27,7 +27,7 @@ export class VideosService implements OnModuleInit,OnModuleDestroy {
     // One consistent DB snapshot; no physical storage paths or upload internals are exposed.
     return this.db.transaction(async em=>{const [folders,videos,progress,favorites,catalog]=await Promise.all([
       em.find(VideoFolder,{order:{position:'ASC',id:'ASC'}}),em.find(Video,{order:{position:'ASC',id:'ASC'}}),em.findBy(VideoProgress,{userId:user.id}),em.findBy(VideoFavorite,{userId:user.id}),em.findOneByOrFail(VideoCatalog,{id:1})]);
-      const p=new Map(progress.map(x=>[x.videoId,x])),f=new Set(favorites.map(x=>x.videoId));return {revision:catalog.revision,canAdmin:this.canAdmin(user),downloads:this.config.VIDEO_DOWNLOADS==='true',maxBytes:this.config.VIDEO_MAX_BYTES??20*1024**3,chunkBytes:CHUNK,
+      const p=new Map(progress.map(x=>[x.videoId,x])),f=new Set(favorites.map(x=>x.videoId));return {revision:catalog.revision,canAdmin:this.canAdmin(user),downloads:this.config.VIDEO_DOWNLOADS==='true',watchTogether:this.config.WATCH_TOGETHER_ENABLED==='true',maxBytes:this.config.VIDEO_MAX_BYTES??20*1024**3,chunkBytes:CHUNK,
         folders:folders.map(x=>({...x,count:videos.filter(v=>v.folderId===x.id).length})),videos:videos.map(({sha256,...v})=>({...v,progress:p.get(v.id)||null,favorite:f.has(v.id)}))};});
   }
   async createFolder(data:{name:string;description:string;position?:number}){return this.transaction(async em=>{
@@ -86,18 +86,21 @@ export class VideosService implements OnModuleInit,OnModuleDestroy {
       const u=await this.upload(id,userId);if(u.received!==u.bytes)throw new BadRequestException('La subida todavía no está completa.');
       // Recover a crash between atomic rename and the DB commit.
       try{await stat(this.storage.path(id,'part'));}catch{await rename(this.storage.path(id,'mp4'),this.storage.path(id,'part'));}
-      const info=await this.storage.inspect(id);if(info.bytes!==u.bytes)throw new BadRequestException('El tamaño final no coincide.');
-      return await this.transaction(async em=>{const current=await locked(em,VideoUpload,'u').where('u.id = :id AND u.userId = :userId',{id,userId}).getOne();if(!current)throw new NotFoundException();await this.folder(em,current.folderId);
-        const duplicate=await em.findOneBy(Video,{sha256:info.sha256});if(duplicate){await em.delete(VideoUpload,id);await this.storage.remove(id,'part');return {id:duplicate.id,duplicate:true};}
-        await chmod(this.storage.path(id,'part'),0o640);await rename(this.storage.path(id,'part'),this.storage.path(id,'mp4'));
+      const prepared=await this.storage.prepare(id,u.bytes),info=prepared.info;
+      const result=await this.transaction(async em=>{const current=await locked(em,VideoUpload,'u').where('u.id = :id AND u.userId = :userId',{id,userId}).getOne();if(!current)throw new NotFoundException();await this.folder(em,current.folderId);
+        const duplicate=await em.findOneBy(Video,{sha256:info.sha256});if(duplicate){await em.delete(VideoUpload,id);return {id:duplicate.id,duplicate:true};}
+        await chmod(prepared.path,0o640);await rename(prepared.path,this.storage.path(id,'mp4'));
         const now=Date.now();await em.save(Video,{id,folderId:current.folderId,title:current.title,description:current.description,thumbnailId:null,position:await em.countBy(Video,{folderId:current.folderId??IsNull()})+1,...info,createdAt:now,updatedAt:now});await em.delete(VideoUpload,id);return {id};
       });
-    }finally{this.finishing.delete(id);}
+      // Publication succeeded. Cleanup failure must not turn a successful upload into an error.
+      await this.storage.remove(id,'part').catch(()=>{});return result;
+    }finally{await rm(this.storage.preparedPath(id),{force:true}).catch(()=>{});this.finishing.delete(id);}
   }
   async disk(){const d=await this.storage.free();const videos=await this.db.getRepository(Video).find({select:{bytes:true}}),uploads=await this.db.getRepository(VideoUpload).find({select:{received:true}});return {...d,videoBytes:videos.reduce((a,v)=>a+v.bytes,0),partialBytes:uploads.reduce((a,v)=>a+v.received,0)};}
   async maintain(){if(this.cleaning||this.finishing.size)return;this.cleaning=true;try{
     await this.storage.init();const old=await this.db.getRepository(VideoUpload).findBy({updatedAt:LessThan(Date.now()-7*86400000)});for(const u of old)await this.db.transaction(async em=>{const current=await locked(em,VideoUpload,'u').where('u.id = :id',{id:u.id}).getOne();if(current&&current.updatedAt<Date.now()-7*86400000){await this.storage.remove(u.id,'part');await em.delete(VideoUpload,u.id);}});
     // Grace window protects files written just before their transaction commits.
+    for(const name of await readdir(resolvePath(this.storage.root,'media'))){const match=/^\.([0-9a-f-]{36})\.prepared$/.exec(name);if(match){const p=this.storage.preparedPath(match[1]);if((await stat(p)).mtimeMs<Date.now()-3600000)await rm(p,{force:true});}}
     for(const [sub,kind] of [['media','mp4'],['images','webp'],['partial','part']] as const)for(const name of await readdir(resolvePath(this.storage.root,sub))){const id=name.slice(0,-kind.length-1);if(!/^[0-9a-f-]{36}$/.test(id)||name!==`${id}.${kind}`)continue;const file=await stat(this.storage.path(id,kind));if(file.mtimeMs>Date.now()-3600000)continue;
       const linked=kind==='webp'?await this.db.getRepository(VideoFolder).existsBy({coverId:id})||await this.db.getRepository(Video).existsBy({thumbnailId:id}):await this.db.getRepository(VideoUpload).existsBy({id})||(kind==='mp4'&&await this.db.getRepository(Video).existsBy({id}));if(!linked)await this.storage.remove(id,kind);
     }

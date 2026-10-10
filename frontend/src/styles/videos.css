@@ -3,3 +3,7 @@
 /* The extra Videos tab must stay inside the existing header on tablets. */
 .app-header nav[aria-label="Navegación principal"]{min-width:0;overflow-x:auto}
 .app-header nav[aria-label="Navegación principal"]>button{flex-shrink:0}
+
+/* Isolated shared playback controls: inherit the existing romantic palette. */
+.videos-page .watch-together { margin-block: 1rem; padding-block: .5rem; border-block: 1px solid var(--border, #eadbe1); }
+.videos-page .watch-together p { margin-block: .5rem; overflow-wrap: anywhere; }

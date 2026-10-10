@@ -1,0 +1,9 @@
+import { useEffect,useRef,useState,type RefObject } from 'react';
+import { TogetherController,type Status } from './controller';
+const initial:Status={active:false,connected:false,present:0,synced:false,blocked:false,notice:''};
+export function WatchTogether({video,videoId,onActive}:{video:RefObject<HTMLVideoElement|null>;videoId:string;onActive:(active:boolean)=>void}){
+  const supported=typeof EventSource!=='undefined'&&typeof globalThis.crypto?.randomUUID==='function';
+  const controller=useRef<TogetherController|null>(null),[status,setStatus]=useState(initial),callback=useRef(onActive);callback.current=onActive;
+  useEffect(()=>{if(!supported){setStatus({...initial,notice:'Este navegador no permite Ver juntos. Puedes reproducir individualmente.'});return;}if(!video.current)return;const c=new TogetherController(video.current,videoId,s=>{setStatus(s);callback.current(s.active);});controller.current=c;return()=>{c.destroy();controller.current=null;};},[video,videoId,supported]);
+  return <div className="watch-together"><div className="video-actions">{status.active?<button className="secondary" onClick={()=>controller.current?.stop()}>Salir de Ver juntos</button>:<button className="secondary" disabled={!supported} onClick={()=>void controller.current?.start()}>❤️ Ver juntos</button>}{status.blocked&&<button className="primary" onClick={()=>controller.current?.resume()}>Toca para sincronizar la reproducción</button>}</div><p role="status" aria-live="polite">{status.active&&status.connected?(status.present<2?'Esperando a tu persona especial ❤️':status.synced?'❤️ Viendo juntos — Sincronizados':'❤️ Viendo juntos — Ajustando la reproducción…'):''}{status.notice&&<span className="subtle"> {status.notice}</span>}</p>{status.active&&<p className="subtle">Abre este mismo video en el otro dispositivo y pulsa ❤️ Ver juntos. Cada persona puede salir sin detener a la otra.</p>}</div>;
+}

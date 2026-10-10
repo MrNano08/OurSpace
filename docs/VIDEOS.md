@@ -1,4 +1,6 @@
-# Videos · Nuestro espacio 0.6.0
+# Videos · Nuestro espacio 0.7.0
+
+Para Ver juntos, faststart y actualización desde 0.6.0: [VER_JUNTOS.md](VER_JUNTOS.md).
 
 ## Qué incluye
 
@@ -10,7 +12,7 @@ En escritorio aparece **Videos**; en móvil, **Más → Mis videos**. Usa el con
 2. Abre la carpeta y pulsa **Video**. El destino se selecciona automáticamente.
 3. Selecciona un MP4, título y descripción. Se agrega al final después de validarse.
 4. Usa flechas arriba/abajo, arrastrar y soltar en escritorio o **Editar / mover → Posición** para organizarlo. Desde ese mismo formulario puedes cambiarlo de carpeta o dejarlo sin carpeta.
-5. Agrega la miniatura con **Miniatura**. Las imágenes se convierten a WebP sin metadatos; los MP4 no se transforman ni pierden calidad.
+5. Agrega la miniatura con **Miniatura**. Las imágenes se convierten a WebP sin metadatos; los flujos de vídeo/audio no se recodifican; faststart puede reordenar el contenedor MP4.
 6. El otro perfil puede reproducir, continuar y marcar favoritos. Cada uno conserva su progreso.
 
 El buscador encuentra carpetas por nombre/descripción y videos por título/descripción, indicando su carpeta. Hay tarjetas de carpetas, favoritos y **Continuar viendo**. Las listas muestran 24 videos por tanda. **Continuar carpeta** selecciona el último video empezado y pendiente; si no hay ninguno, el primer no completado; si todos están completos, vuelve al primero.
@@ -51,9 +53,9 @@ Al interrumpirse, se conserva lo confirmado y se recorta el bloque incompleto. *
 
 Los parciales caducan a los siete días sin bloques confirmados. Cancelar una subida elimina su parcial. Un archivo que no pasa validación queda pendiente para inspección/cancelación; no se publica. Los bytes no confirmados tras una caída se recortan al reanudar; una caída entre renombrar y confirmar la base también puede recuperarse al finalizar nuevamente.
 
-Validación: extensión MP4, tamaño, estructura de átomos MP4 completa, `moov` antes de `mdat`, un flujo H.264, audio AAC si hay audio y duración positiva obtenida con ffprobe. No se decodifica cada cuadro: un archivo dañado internamente aún puede fallar durante la reproducción. No hay transcodificación, HLS, DASH ni procesamiento continuo. El hash completo implica una lectura adicional del HDD, limitada a una finalización a la vez en esta instancia. Esta versión está pensada para **una sola instancia del backend**, como el servicio systemd actual; no desplegar en clúster sin coordinar finalización y mantenimiento entre instancias.
+Validación: extensión MP4, tamaño, estructura de átomos MP4 completa, `moov` antes de `mdat` en el archivo publicado, un flujo H.264, audio AAC si hay audio y duración positiva obtenida con ffprobe. No se decodifica cada cuadro: un archivo dañado internamente aún puede fallar durante la reproducción. No hay transcodificación, HLS, DASH ni procesamiento continuo. El hash completo implica una lectura adicional del HDD, limitada a una finalización a la vez en esta instancia. Esta versión está pensada para **una sola instancia del backend**, como el servicio systemd actual; no desplegar en clúster sin coordinar finalización y mantenimiento entre instancias.
 
-Si un MP4 H.264/AAC no tiene faststart, prepara una copia **antes de subirla**, preferiblemente en tu computadora:
+Desde 0.7.0, el servidor prepara automáticamente los MP4 H.264/AAC nuevos que necesitan faststart. El original parcial se conserva hasta confirmar la publicación y ante errores. No se reescriben vídeos existentes. Consulta espacio temporal, límites y desactivación en [VER_JUNTOS.md](VER_JUNTOS.md). Si prefieres prepararlo antes de subirlo, puedes hacerlo en tu computadora:
 
 ```bash
 ffmpeg -i entrada.mp4 -map 0:v:0 -map '0:a:0?' -c copy -movflags +faststart salida.mp4
@@ -74,7 +76,7 @@ El comando copia los flujos; no convierte códecs incompatibles. No sobrescribe 
 
 Desactivar descargas oculta el botón y bloquea el endpoint de descarga. No es DRM: una persona autorizada a reproducir recibe los bytes y puede guardarlos por otros medios.
 
-`ffprobe` solo se requiere cuando se finaliza una subida. `ffmpeg` se usa en las pruebas para generar videos sintéticos. No se agregaron dependencias npm.
+`ffprobe` se requiere al finalizar una subida; `ffmpeg` también cuando el archivo necesita faststart. Ambos vienen en el paquete Debian ffmpeg y se usan en las pruebas. No se agregaron dependencias npm.
 
 ## Actualización en Debian desde 0.5.0
 
@@ -100,7 +102,7 @@ sudo install -d -m 0700 -o nuestro-espacio -g nuestro-espacio /var/lib/nuestro-e
 sudo setfacl -m u:www-data:--x /var/lib/nuestro-espacio
 ```
 
-El directorio padre de estado usa 0700 en la plantilla. La ACL anterior concede a Nginx solo atravesarlo; no abre la galería de fotos. `media`/`images` usan setgid para que los nuevos archivos hereden el grupo de lectura de Nginx. El código fija los archivos publicados en 0640; `partial` es exclusivo del backend. No concedas acceso público a todas las fotos ni uses `chmod -R 777`. Comprueba nuevamente la ACL tras arrancar el servicio, porque systemd puede ajustar permisos del directorio de estado; si falta, vuelve a aplicar el permiso de paso y verifica.
+El directorio padre de estado usa 0700 en la plantilla. La ACL anterior concede a Nginx solo atravesarlo; no abre la galería de fotos. `media`/`images` usan setgid para archivos creados allí. Un archivo movido desde `partial` conserva su grupo anterior: verifica el permiso efectivo de lectura de Nginx también en subidas que ya traigan faststart; no des por suficiente setgid para ese caso. El código fija los archivos publicados en 0640; `partial` es exclusivo del backend. No concedas acceso público a todas las fotos ni uses `chmod -R 777`. Comprueba nuevamente la ACL tras arrancar el servicio, porque systemd puede ajustar permisos del directorio de estado; si falta, vuelve a aplicar el permiso de paso y verifica.
 
 Si `StateDirectory`/`ProtectSystem=strict` se mantienen, `/var/lib/nuestro-espacio` ya está autorizado. Para otro montaje, añade únicamente la ruta de videos a `ReadWritePaths`; conserva el resto de la unidad. No cambies el directorio de fotos existente.
 

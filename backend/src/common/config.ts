@@ -16,6 +16,8 @@ const schema = z.object({
   VIDEO_DOWNLOADS:z.enum(['true','false']).optional(),
   VIDEO_DELIVERY:z.enum(['nginx','node']).optional(),
   VIDEO_RESERVE_BYTES:z.coerce.number().int().min(0).optional(),
+  WATCH_TOGETHER_ENABLED:z.enum(['true','false']).optional(),
+  VIDEO_FASTSTART:z.enum(['true','false']).optional(),
   PHOTO_STORAGE_DIR:z.string().min(1).optional(),
   MAIL_USER:z.string().default(''),MAIL_APP_PASSWORD:z.string().default(''),MAIL_FROM:z.string().default('')
 }).superRefine((v,ctx)=>{

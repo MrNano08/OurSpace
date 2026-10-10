@@ -1,3 +1,10 @@
+# Entrega 0.7.0 · ❤️ Ver juntos y faststart automático
+
+Integración sobre 0.6.0, sin nuevas migraciones ni dependencias npm. Ver juntos está desactivado por defecto; faststart se aplica a nuevas subidas compatibles.
+
+- Auditoría, uso, activación, consumo y reversión: [docs/VER_JUNTOS.md](docs/VER_JUNTOS.md).
+- Pruebas ejecutadas y pendientes: [docs/VALIDACION_0.7.0.md](docs/VALIDACION_0.7.0.md).
+
 # Entrega 0.6.0 · Biblioteca privada de videos
 
 Esta versión amplía la base 0.5.0. Conserva cuentas, contraseñas desde cuatro caracteres, diseño y márgenes laterales. No contiene datos personales ni archivos multimedia del servidor.

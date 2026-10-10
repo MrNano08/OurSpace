@@ -1,3 +1,5 @@
+import { TogetherController } from './videos/together/together.controller';
+import { TogetherService } from './videos/together/together.service';
 import { VideosController } from './videos/videos.controller';
 import { VideosService } from './videos/videos.service';
 import { VideoStorage } from './videos/storage';
@@ -37,9 +39,9 @@ class HealthController {@Public() @Get() get(){return {status:'ok'};}}
 @Module({})
 export class AppModule {
   static register(config:Config,testDb?:DataSource,testMail?:MailService,worker=true):DynamicModule {
-    return {module:AppModule,controllers:[VideosController,HealthController,AuthController,UsersController,TasksController,CountersController,NotificationsController,AgendaController,RemindersController,MessagesController,PetitionsController,GalleryController,CollectionsController,AssetsController,WishesController],providers:[
+    return {module:AppModule,controllers:[TogetherController,VideosController,HealthController,AuthController,UsersController,TasksController,CountersController,NotificationsController,AgendaController,RemindersController,MessagesController,PetitionsController,GalleryController,CollectionsController,AssetsController,WishesController],providers:[
       {provide:CONFIG,useValue:config},{provide:DataSource,useFactory:async()=>testDb||await createDataSource(config).initialize()},
-      VideosService,VideoStorage,CollectionsService,AssetsService,GalleryService,PhotoStorage,PhotoUploadGate,testMail?{provide:MailService,useValue:testMail}:MailService,AuthService,{provide:APP_GUARD,useClass:AuthGuard},...(worker?[NotificationWorker,AgendaWorker,MailWorker,MessagesWorker,GalleryWorker]:[])
+      VideosService,VideoStorage,TogetherService,CollectionsService,AssetsService,GalleryService,PhotoStorage,PhotoUploadGate,testMail?{provide:MailService,useValue:testMail}:MailService,AuthService,{provide:APP_GUARD,useClass:AuthGuard},...(worker?[NotificationWorker,AgendaWorker,MailWorker,MessagesWorker,GalleryWorker]:[])
     ]};
   }
 }
