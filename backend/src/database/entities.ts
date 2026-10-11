@@ -1,3 +1,4 @@
+import { Manga,MangaVolume,MangaChapter,MangaAsset,MangaPreference,MangaProgress,MangaNote } from '../mangas/entities';
 import { VideoCatalog,VideoFolder,Video,VideoProgress,VideoFavorite,VideoUpload } from '../videos/entities';
 import { Entity,PrimaryColumn,Column,Index } from 'typeorm';
 import { CalendarEvent,Reminder,MailJob } from '../agenda/entities';
@@ -86,4 +87,4 @@ export class Notification {
   @Column('boolean',{default:false}) dismissed!:boolean;
   @Column('double') createdAt!:number;
 }
-export const entities=[VideoCatalog,VideoFolder,Video,VideoProgress,VideoFavorite,VideoUpload,User,Session,PasswordReset,AuthThrottle,Task,Counter,CounterChange,Notification,CalendarEvent,Reminder,MailJob,Message,Petition,Photo,PhotoAccess,Album,PhotoFavorite,DailyMemory,PrivateAsset,Wish];
+export const entities=[Manga,MangaVolume,MangaChapter,MangaAsset,MangaPreference,MangaProgress,MangaNote,VideoCatalog,VideoFolder,Video,VideoProgress,VideoFavorite,VideoUpload,User,Session,PasswordReset,AuthThrottle,Task,Counter,CounterChange,Notification,CalendarEvent,Reminder,MailJob,Message,Petition,Photo,PhotoAccess,Album,PhotoFavorite,DailyMemory,PrivateAsset,Wish];

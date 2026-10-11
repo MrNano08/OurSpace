@@ -7,3 +7,5 @@ coverage/
 storage/
 *.log
 *.tsbuildinfo
+
+frontend/public/pdfjs/

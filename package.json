@@ -1,13 +1,13 @@
 {
   "name": "nuestro-espacio",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "workspaces": [
     "backend",
     "frontend"
   ],
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   },
   "scripts": {
     "dev": "concurrently -k -n API,WEB \"npm run dev -w backend\" \"npm run dev -w frontend\"",

@@ -1,0 +1,12 @@
+import { useEffect,useRef,useState } from 'react';
+import { getDocument,GlobalWorkerOptions,type PDFDocumentProxy } from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { fileUrl } from './types';
+GlobalWorkerOptions.workerSrc=workerUrl;
+export default function PdfPage({id,page,zoom}:{id:string;page:number;zoom:number}){
+ const canvas=useRef<HTMLCanvasElement>(null),wrap=useRef<HTMLDivElement>(null),[pdf,setPdf]=useState<PDFDocumentProxy|null>(null),[error,setError]=useState(''),[width,setWidth]=useState(600);
+ useEffect(()=>{setPdf(null);setError('');let live=true;const loading=getDocument({url:fileUrl(id),withCredentials:true,disableAutoFetch:true,disableStream:true,rangeChunkSize:256*1024,enableXfa:false,useWasm:false,disableFontFace:true,cMapUrl:'/pdfjs/cmaps/',cMapPacked:true,standardFontDataUrl:'/pdfjs/standard_fonts/',wasmUrl:'/pdfjs/wasm/',maxImageSize:32_000_000,canvasMaxAreaInBytes:32*1024**2});loading.promise.then(doc=>{if(live)setPdf(doc);}).catch(e=>{if(live)setError('No se pudo abrir el PDF: '+e.message);});return()=>{live=false;void loading.destroy();};},[id]);
+ useEffect(()=>{if(!wrap.current)return;const r=new ResizeObserver(entries=>setWidth(entries[0].contentRect.width));r.observe(wrap.current);return()=>r.disconnect();},[]);
+ useEffect(()=>{if(!pdf||!canvas.current)return;let canceled=false,task:any,leaf:any;setError('');void pdf.getPage(Math.min(page,pdf.numPages)).then(p=>{leaf=p;if(canceled)return;const base=p.getViewport({scale:1}),scale=width/base.width*zoom,viewport=p.getViewport({scale});const ratio=Math.min(devicePixelRatio||1,2,Math.sqrt(8_000_000/(viewport.width*viewport.height)));const target=canvas.current!;target.width=Math.floor(viewport.width*ratio);target.height=Math.floor(viewport.height*ratio);target.style.width=viewport.width+'px';target.style.height=viewport.height+'px';task=p.render({canvas:target,viewport,transform:ratio!==1?[ratio,0,0,ratio,0,0]:undefined});return task.promise;}).catch(e=>{if(!canceled&&e.name!=='RenderingCancelledException')setError('No se pudo dibujar esta página. Prueba otra página o vuelve a abrir el capítulo.');});return()=>{canceled=true;task?.cancel();Promise.resolve(task?.promise).catch(()=>{}).then(()=>leaf?.cleanup());};},[pdf,page,zoom,width]);
+ return <div ref={wrap} className="manga-pdf">{!pdf&&!error&&<p role="status">Abriendo PDF…</p>}{error&&<p role="alert">{error}</p>}<canvas ref={canvas} aria-label={'Página '+page+' del PDF'} role="img"/></div>;
+}

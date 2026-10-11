@@ -1,3 +1,12 @@
+# Entrega 0.8.0 · ❤️ Mi rincón de mangas
+
+Integración sobre 0.7.0: biblioteca privada, capítulos con imágenes o PDF, lector móvil, progreso individual, enlaces y notas con recuperación de borradores. Conserva Ver juntos, faststart, diseño general y contraseñas desde cuatro caracteres.
+
+- Activación, límites, dependencias y reversión: [docs/MANGAS.md](docs/MANGAS.md).
+- Pruebas ejecutadas y pendientes: [docs/VALIDACION_0.8.0.md](docs/VALIDACION_0.8.0.md).
+- Desactivado por defecto con `MANGAS_ENABLED=false`. Requiere una migración aditiva, Node >=22.13 y las utilidades `pdfinfo` y `prlimit` para validar PDF. No ejecutar `db:seed` al actualizar.
+- ZIP y CBZ quedan pendientes; esta entrega admite PDF, JPG/JPEG, PNG y WebP.
+
 # Entrega 0.7.0 · ❤️ Ver juntos y faststart automático
 
 Integración sobre 0.6.0, sin nuevas migraciones ni dependencias npm. Ver juntos está desactivado por defecto; faststart se aplica a nuevas subidas compatibles.

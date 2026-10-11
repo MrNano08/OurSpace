@@ -1,3 +1,6 @@
+import { MangasController } from './mangas/mangas.controller';
+import { MangasService } from './mangas/mangas.service';
+import { MangaStorage } from './mangas/storage';
 import { TogetherController } from './videos/together/together.controller';
 import { TogetherService } from './videos/together/together.service';
 import { VideosController } from './videos/videos.controller';
@@ -39,9 +42,9 @@ class HealthController {@Public() @Get() get(){return {status:'ok'};}}
 @Module({})
 export class AppModule {
   static register(config:Config,testDb?:DataSource,testMail?:MailService,worker=true):DynamicModule {
-    return {module:AppModule,controllers:[TogetherController,VideosController,HealthController,AuthController,UsersController,TasksController,CountersController,NotificationsController,AgendaController,RemindersController,MessagesController,PetitionsController,GalleryController,CollectionsController,AssetsController,WishesController],providers:[
+    return {module:AppModule,controllers:[MangasController,TogetherController,VideosController,HealthController,AuthController,UsersController,TasksController,CountersController,NotificationsController,AgendaController,RemindersController,MessagesController,PetitionsController,GalleryController,CollectionsController,AssetsController,WishesController],providers:[
       {provide:CONFIG,useValue:config},{provide:DataSource,useFactory:async()=>testDb||await createDataSource(config).initialize()},
-      VideosService,VideoStorage,TogetherService,CollectionsService,AssetsService,GalleryService,PhotoStorage,PhotoUploadGate,testMail?{provide:MailService,useValue:testMail}:MailService,AuthService,{provide:APP_GUARD,useClass:AuthGuard},...(worker?[NotificationWorker,AgendaWorker,MailWorker,MessagesWorker,GalleryWorker]:[])
+      VideosService,VideoStorage,TogetherService,MangasService,MangaStorage,CollectionsService,AssetsService,GalleryService,PhotoStorage,PhotoUploadGate,testMail?{provide:MailService,useValue:testMail}:MailService,AuthService,{provide:APP_GUARD,useClass:AuthGuard},...(worker?[NotificationWorker,AgendaWorker,MailWorker,MessagesWorker,GalleryWorker]:[])
     ]};
   }
 }
