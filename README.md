@@ -1,3 +1,11 @@
+# Entrega 0.8.1 · Navegación y lectura más cómoda
+
+- Secciones, carpetas, vídeos, obras y capítulos identificados en la dirección: Atrás/Adelante del navegador y recarga conservan el lugar abierto.
+- Pantalla completa en el lector de mangas, con alternativa que ocupa la ventana en navegadores que no admiten la API nativa. Se bloquea el scroll de fondo.
+- Botones de regreso visibles, menú superior sin barra de desplazamiento, selectores de archivos estilizados y más espacio entre enlaces, continuación, estado y administración.
+- Actualización desde 0.8.0 **sin nuevas migraciones, servicios ni dependencias**. Conserva `.env` y almacenamiento; instala con `npm ci`, compila con `npm run build` y publica el frontend completo como en la versión anterior. No cambian las banderas existentes. Si vienes de 0.7.0, primero sigue la guía de mangas.
+- Detalles y validación: [docs/NAVEGACION_0.8.1.md](docs/NAVEGACION_0.8.1.md).
+
 # Entrega 0.8.0 · ❤️ Mi rincón de mangas
 
 Integración sobre 0.7.0: biblioteca privada, capítulos con imágenes o PDF, lector móvil, progreso individual, enlaces y notas con recuperación de borradores. Conserva Ver juntos, faststart, diseño general y contraseñas desde cuatro caracteres.

@@ -7,4 +7,4 @@ export type Reading={chapter:Chapter;assets:Asset[];progress:Progress|null};
 export const fileUrl=(id:string)=>'/api/mangas/assets/'+id+'/file';
 export const urls=(value:string|string[])=>Array.isArray(value)?value:JSON.parse(value||'[]') as string[];
 export const splitLinks=(text:string)=>text.split('\n').map(x=>x.trim()).filter(Boolean);
-export function ExternalLinks({links}: {links:string[]}){return <>{links.map((url,i)=><a key={url+i} className="text-button" href={url} target="_blank" rel="noopener noreferrer">Leer en la página original{links.length>1?` (${i+1})`:''} ↗</a>)}</>;}
+export function ExternalLinks({links}: {links:string[]}){return <div className="manga-external-links">{links.map((url,i)=><a key={url+i} className="text-button" href={url} target="_blank" rel="noopener noreferrer">Leer en la página original{links.length>1?` (${i+1})`:''} ↗</a>)}</div>;}

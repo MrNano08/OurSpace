@@ -1,0 +1,13 @@
+/* Shared navigation and upload controls; content margins remain unchanged. */
+.app-header nav[aria-label="Navegación principal"]{overflow:visible;flex-wrap:wrap;justify-content:center;gap:4px;min-width:0}
+.app-header nav[aria-label="Navegación principal"]>button{min-height:44px;padding:10px 12px;border-radius:12px}
+.back-button{display:inline-flex;align-items:center;min-height:44px;padding:11px 16px;font-weight:600;gap:8px;margin-bottom:16px}
+.section-back{margin-bottom:20px}
+input[type="file"]{display:block;width:100%;max-width:100%;min-width:0;border:1px dashed #cbbcae;border-radius:12px;background:#fbf7f0;padding:10px;color:var(--muted);font:inherit;cursor:pointer}
+input[type="file"]::file-selector-button{border:1px solid #c6cebc;border-radius:9px;padding:10px 14px;margin-right:12px;background:#e8eddf;color:#536346;font:inherit;font-weight:600;cursor:pointer}
+input[type="file"]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+input[type="file"]:disabled{opacity:.6;cursor:wait}
+.more-menu{gap:12px}
+@media(min-width:581px){.app-header{height:auto;min-height:88px;padding-top:12px;padding-bottom:12px;gap:14px}.app-header nav[aria-label="Navegación principal"]{display:flex;flex:1}.app-header .brand,.app-header .account{flex-shrink:0}}
+@media(min-width:1100px){.app-header nav[aria-label="Navegación principal"] button span{display:inline}}
+@media(max-width:580px){.back-button{font-size:12px}.section-back{margin-bottom:14px}}
