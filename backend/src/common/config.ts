@@ -9,7 +9,7 @@ const schema = z.object({
   DB_HOST:z.string().default('127.0.0.1'),DB_PORT:z.coerce.number().int().default(3306),
   DB_USERNAME:z.string().min(1),DB_PASSWORD:z.string().min(1),DB_DATABASE:z.string().min(1),
   AUTH_SECRET:z.string().min(32).refine(v=>!v.includes('REEMPLAZAR'),'Genera AUTH_SECRET aleatorio'),
-  RONALDO_EMAIL:z.email().default('ronaldomoradiaz08@gmail.com'),SCARLET_EMAIL:z.email().default('scarreyesg22@gmail.com'),
+  RONALDO_EMAIL:z.email().default('example@gmail.com'),SCARLET_EMAIL:z.email().default('example@gmail.com'),
   MANGAS_ENABLED:z.enum(['true','false']).optional(),
   MANGA_STORAGE_DIR:z.string().refine(isAbsolute,'Usa una ruta absoluta').optional(),
   MANGA_DELIVERY:z.enum(['node','nginx']).optional(),
